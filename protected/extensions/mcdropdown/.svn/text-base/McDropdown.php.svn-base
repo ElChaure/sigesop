@@ -1,0 +1,51 @@
+<?php
+
+/**
+ * McDropdown class file.
+ *
+ * @author Salvador Aceves (xalakox@gmail.com)
+ * @copyright Copyright &copy; 2011 Xalakox
+ *
+ */
+class McDropdown extends CWidget{
+	private $baseurl;
+	public $model;
+	public $attribute;
+	public $form;
+	public $data;
+    public function init()
+    {
+		$dir = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'source';
+		$this->baseurl = Yii::app()->getAssetManager()->publish($dir);
+		Yii::app()->clientScript->registerCoreScript('jquery'); 
+		$cs = Yii::app()->getClientScript(); 
+		$cs->registerScriptFile($this->baseurl."/lib/jquery.mcdropdown.min.js");
+		$cs->registerCssFile($this->baseurl.'/css/jquery.mcdropdown.min');
+        if(!$this->getId(false))
+          $this->setId('nav-'.$this->attribute);
+        parent::init();
+    }
+   public function run(){
+		$idoftxtfield = get_class($this->model)."_".$this->attribute;
+		$idofulmenu = get_class($this->model)."-".$this->attribute."-ul";
+		echo $this->form->textField($this->model,$this->attribute,array('size'=>45));
+		echo $this->getul($this->data," id='".$idofulmenu."' class='mcdropdown_menu'");		
+		echo "<script type=\"text/javascript\">
+		$(document).ready(function (){
+			$('#".$idoftxtfield."').mcDropdown('#".$idofulmenu."',{allowParentSelect: true});
+		});
+		</script>";
+        parent::run();
+    }
+	private function getul($data,$st=""){
+		$retval = "<ul".$st.">";
+        foreach($data as $dato) {
+				$retval.= '<li rel=\''.$dato['id'].'\'>'.$dato['text'];
+                if ($dato['children'])
+					$retval.= $this->getul($dato['children'],"");
+				$retval.= "</li>";
+        }
+		$retval.= "</ul>";
+        return $retval;
+	}
+}
